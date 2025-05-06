@@ -1,0 +1,10 @@
+{
+    "name": "Primary Windows",
+    "description": "Make new windows open on primary display",
+    "uuid": "primary-windows@oxideops.github.com",
+    "shell-version": [
+        "48"
+    ],
+    "version": 1,
+    "url": "https://github.com/oxideops/primary-windows"
+}
