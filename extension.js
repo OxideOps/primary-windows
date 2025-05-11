@@ -20,8 +20,8 @@ export default class PrimaryWindowsExtension extends Extension {
             const currentMonitor = window.get_monitor();
 
             if (currentMonitor !== primaryMonitor) {
-                log(`PrimaryWindowsExtension: Moving window ${windowTitle} to primary monitor ${primaryMonitor}`);
-                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10, () => {
+                log(`PrimaryWindowsExtension: Moving window ${windowTitle} from monitor ${currentMonitor} to ${primaryMonitor}`);
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
                     window.move_to_monitor(primaryMonitor);
                     return GLib.SOURCE_REMOVE;
                 });
