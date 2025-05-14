@@ -1,5 +1,6 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import GLib from 'gi://GLib';
+import Meta from 'gi://Meta';
 
 export default class PrimaryWindowsExtension extends Extension {
     enable() {
@@ -19,13 +20,32 @@ export default class PrimaryWindowsExtension extends Extension {
             const primaryMonitor = display.get_primary_monitor();
             const currentMonitor = window.get_monitor();
 
-            if (currentMonitor !== primaryMonitor) {
-                log(`PrimaryWindowsExtension: Moving window ${windowTitle} from monitor ${currentMonitor} to ${primaryMonitor}`);
-                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
-                    window.move_to_monitor(primaryMonitor);
-                    return GLib.SOURCE_REMOVE;
-                });
+            if (currentMonitor === primaryMonitor) {
+                return;
             }
+
+            const windowType = window.get_window_type();
+            const normalWindowType = Meta.WindowType.NORMAL;
+
+            if (windowType !== normalWindowType) {
+                log(`PrimaryWindowsExtension: Window "${windowTitle}" is not a normal window (type: ${windowType}), not moving.`);
+                return;
+            }
+
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+                try {
+                    const actor = window.get_compositor_private();
+                    if (!actor || !actor.get_stage()) {
+                        log(`PrimaryWindowsExtension: Window "${windowTitle}" has no actor or stage, not moving.`);
+                        return GLib.SOURCE_REMOVE;
+                    }
+                    log(`PrimaryWindowsExtension: Moving window "${windowTitle}" from monitor ${currentMonitor} to ${primaryMonitor}`);
+                    window.move_to_monitor(primaryMonitor);
+                } catch (e) {
+                    logError(`PrimaryWindowsExtension: Error moving window "${windowTitle}": ${e.message}`);
+                }
+                return GLib.SOURCE_REMOVE;
+            });
         } catch (e) {
             logError(`PrimaryWindowsExtension: Error handling new window: ${e.message}`);
         }
