@@ -1,5 +1,4 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
-import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 
 export default class PrimaryWindowsExtension extends Extension {
@@ -32,19 +31,19 @@ export default class PrimaryWindowsExtension extends Extension {
                 return;
             }
 
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+            const windowActor = window.get_compositor_private();
+            if (!windowActor || !windowActor.get_stage()) {
+                log(`PrimaryWindowsExtension: Window "${windowTitle}" has no actor or stage, not moving.`);
+                return;
+            }
+
+            windowActor.connect('first-frame', () => {
                 try {
-                    const actor = window.get_compositor_private();
-                    if (!actor || !actor.get_stage()) {
-                        log(`PrimaryWindowsExtension: Window "${windowTitle}" has no actor or stage, not moving.`);
-                        return GLib.SOURCE_REMOVE;
-                    }
                     log(`PrimaryWindowsExtension: Moving window "${windowTitle}" from monitor ${currentMonitor} to ${primaryMonitor}`);
                     window.move_to_monitor(primaryMonitor);
                 } catch (e) {
                     logError(`PrimaryWindowsExtension: Error moving window "${windowTitle}": ${e.message}`);
                 }
-                return GLib.SOURCE_REMOVE;
             });
         } catch (e) {
             logError(`PrimaryWindowsExtension: Error handling new window: ${e.message}`);
